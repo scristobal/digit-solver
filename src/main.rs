@@ -1,3 +1,4 @@
+use clap::Parser;
 use std::{collections::HashSet, rc::Rc, time::Instant};
 
 use itertools::Itertools;
@@ -8,6 +9,18 @@ enum Op {
     Sub,
     Mul,
     Div,
+}
+
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Target number
+    #[arg(short, long)]
+    target: u32,
+
+    /// Numbers to combine
+    #[arg(short, long, num_args = 6)]
+    numbers: Vec<u32>,
 }
 
 #[derive(Hash, Eq, Debug)]
@@ -24,10 +37,12 @@ impl PartialEq for State {
 }
 
 fn main() {
-    let target = 73;
+    let args = Args::parse();
+
+    let target = args.target;
 
     let start = Rc::new(State {
-        numbers: vec![2, 3, 4, 5, 10, 25],
+        numbers: args.numbers,
         previous_state: None,
         previous_op: None,
     });
@@ -154,23 +169,27 @@ fn main() {
         visited.insert(Rc::clone(&state));
     }
 
-    let mut operations = Vec::<(u32, Op, u32, u32)>::new();
+    if result.is_some() {
+        let mut operations = Vec::<(u32, Op, u32, u32)>::new();
 
-    while let Some(ref state) = result {
-        if let Some(op) = &state.previous_op {
-            operations.push(*op)
+        while let Some(ref state) = result {
+            if let Some(op) = &state.previous_op {
+                operations.push(*op)
+            }
+
+            result = state.previous_state.clone()
         }
 
-        result = state.previous_state.clone()
+        let duration = start_time.elapsed();
+
+        println!(
+            "Found solution in {:?} after {} operations",
+            duration,
+            visited.len()
+        );
+
+        operations.iter().rev().for_each(|op| println!("{:?}", op));
+    } else {
+        println!("no solution found")
     }
-
-    let duration = start_time.elapsed();
-
-    println!(
-        "Found solution in {:?} after {} operations",
-        duration,
-        visited.len()
-    );
-
-    operations.iter().rev().for_each(|op| println!("{:?}", op));
 }
