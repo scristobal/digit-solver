@@ -41,7 +41,7 @@ fn main() {
 
     if operations.len() > 0 {
         println!("Solution found:");
-        operations.iter().rev().for_each(|op| println!("{:?}", op));
+        operations.iter().rev().for_each(|op| println!("{}", op));
     } else {
         println!("No solution found")
     }
